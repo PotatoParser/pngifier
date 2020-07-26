@@ -1,0 +1,57 @@
+language: rust
+rust:
+  - stable
+cache:
+  directories:
+    - ${STACK_HOME}
+
+before_install:
+  - mkdir -p ${STACK_BIN}/builds
+  - export PATH=${STACK_BIN}:$PATH
+
+before_deploy:
+  - mv builds/*.* ${STACK_BIN}/builds
+  - cd ${STACK_BIN}
+
+jobs:
+  include:
+    - os: linux
+      dist: bionic
+      services:
+        - docker
+      env:
+        - STACK_HOME=${HOME}/.stack
+        - STACK_BIN=${HOME}/.local/bin
+      script:
+        - cargo install cross
+        - ./travis/build-linux.sh
+      deploy: &deploy_base
+        provider: releases
+        api_key: ${GITHUB_TOKEN}
+        file_glob: true
+        file: builds/*.*
+        skip_cleanup: true
+        draft: false
+        name: ${TRAVIS_TAG}
+        on:
+          tags: true
+
+    - os: osx
+      env:
+        - STACK_HOME=${HOME}/.stack
+        - STACK_BIN=${HOME}/.local/bin
+      script:
+        - ./travis/build-mac.sh
+      deploy:
+        <<: *deploy_base
+
+    - os: windows
+      env:
+        - STACK_HOME=${HOME}/AppData/Roaming/stack
+        - STACK_BIN=${HOME}/AppData/Roaming/local/bin
+      script:
+        - rustup target add i686-pc-windows-msvc
+        - rustup target add x86_64-pc-windows-msvc
+        - ./travis/build-windows.sh
+      deploy:
+        <<: *deploy_base
