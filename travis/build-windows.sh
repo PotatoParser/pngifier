@@ -1,7 +1,7 @@
 #!/bin/bash
 
-windows_x64='i686-pc-windows-msvc'
-windows_x86='x86_64-pc-windows-msvc'
+windows_x86='i686-pc-windows-msvc'
+windows_x64='x86_64-pc-windows-msvc'
 
 TOML='Cargo.toml'
 
